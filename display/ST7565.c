@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include "lvgl/lv_core/lv_vdb.h"
+//#include "lvgl/lv_core/lv_vdb.h"
 #include LV_DRV_DISP_INCLUDE
 #include LV_DRV_DELAY_INCLUDE
 
@@ -132,41 +132,41 @@ void st7565_init(void)
     memset(lcd_fb, 0x00, sizeof(lcd_fb));
 }
 
-
-void st7565_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+void st7565_flush(lv_disp_drv_t *drv, const lv_area_t *area, const lv_color_t *color_p)
 {
     /*Return if the area is out the screen*/
-    if(x2 < 0) return;
-    if(y2 < 0) return;
-    if(x1 > ST7565_HOR_RES - 1) return;
-    if(y1 > ST7565_VER_RES - 1) return;
-
+    if((area->x2 < 0) || (area->y2 < 0) || (area->x1 > ST7565_HOR_RES - 1) || (area->y1 > ST7565_VER_RES - 1))
+    {
+        lv_disp_flush_ready(drv);
+        return;
+    }
+            
     /*Truncate the area to the screen*/
-    int32_t act_x1 = x1 < 0 ? 0 : x1;
-    int32_t act_y1 = y1 < 0 ? 0 : y1;
-    int32_t act_x2 = x2 > ST7565_HOR_RES - 1 ? ST7565_HOR_RES - 1 : x2;
-    int32_t act_y2 = y2 > ST7565_VER_RES - 1 ? ST7565_VER_RES - 1 : y2;
+    int32_t act_x1 = area->x1 < 0 ? 0 : area->x1;
+    int32_t act_y1 = area->y1 < 0 ? 0 : area->y1;
+    int32_t act_x2 = area->x2 > ST7565_HOR_RES - 1 ? ST7565_HOR_RES - 1 : area->x2;
+    int32_t act_y2 = area->y2 > ST7565_VER_RES - 1 ? ST7565_VER_RES - 1 : area->y2;
 
     int32_t x, y;
 
     /*Set the first row in */
 
     /*Refresh frame buffer*/
-    for(y = act_y1; y <= act_y2; y++) {
-        for(x = act_x1; x <= act_x2; x++) {
-            if(lv_color_to1(*color_p) != 0) {
-                lcd_fb[x + (y / 8)*ST7565_HOR_RES] &= ~(1 << (7 - (y % 8)));
+    for (y = act_y1; y <= act_y2; y++) {
+        for (x = act_x1; x <= act_x2; x++) {
+            if (lv_color_to1(*color_p) != 0) {
+                lcd_fb[x + (y / 8) * ST7565_HOR_RES] &= ~(1 << (7 - (y % 8)));
             } else {
-                lcd_fb[x + (y / 8)*ST7565_HOR_RES] |= (1 << (7 - (y % 8)));
+                lcd_fb[x + (y / 8) * ST7565_HOR_RES] |= (1 << (7 - (y % 8)));
             }
-            color_p ++;
+            color_p++;
         }
 
-        color_p += x2 - act_x2; /*Next row*/
+        color_p += area->x2 - act_x2; /*Next row*/
     }
 
     st7565_sync(act_x1, act_y1, act_x2, act_y2);
-    lv_flush_ready();
+    lv_disp_flush_ready(drv);
 }
 
 

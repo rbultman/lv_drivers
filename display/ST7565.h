@@ -41,7 +41,7 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void st7565_init(void);
-void st7565_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p);
+void st7565_flush(lv_disp_drv_t *drv, const lv_area_t *area, const lv_color_t *color_p);
 void st7565_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color);
 void st7565_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p);
 
